@@ -141,11 +141,11 @@ func (g *generator) generateProtobufClient(file *descriptor.FileDescriptorProto,
 	g.P(`            self.__target = server_address.encode('ascii')`)
 	g.P(`        self.__service_name = `, strconv.Quote(fullServiceName(file, service)))
 	g.P()
-	g.P(`    def __make_request(self, body, full_method):`)
+	g.P(`    def __make_request(self, body, full_method, headers={}):`)
 	g.P(`        req = Request(`)
 	g.P(`            url=self.__target + "/twirp" + full_method,`)
 	g.P(`            data=body,`)
-	g.P(`            headers={"Content-Type": "application/protobuf"},`)
+	g.P(`            headers={**{"Content-Type": "application/protobuf"}, **headers},`)
 	g.P(`        )`)
 	g.P(`        try:`)
 	g.P(`            resp = urlopen(req)`)
@@ -167,7 +167,7 @@ func (g *generator) generateProtobufClient(file *descriptor.FileDescriptorProto,
 			}
 		}
 
-		g.P(`    def `, methName, `(self, `, inputName, `):`)
+		g.P(`    def `, methName, `(self, `, inputName, `, headers={}):`)
 		comments, err := g.reg.MethodComments(file, service, method)
 		if err == nil && comments.Leading != "" {
 			g.P(`        """`)
@@ -182,7 +182,7 @@ func (g *generator) generateProtobufClient(file *descriptor.FileDescriptorProto,
 		g.P()
 		g.P(`        full_method = "/{}/{}".format(self.__service_name, `, strconv.Quote(method.GetName()), `)`)
 		g.P(`        body = serialize(`, inputName, `)`)
-		g.P(`        resp_str = self.__make_request(body=body, full_method=full_method)`)
+		g.P(`        resp_str = self.__make_request(body=body, full_method=full_method, headers=headers)`)
 		g.P(`        return deserialize(resp_str)`)
 		g.P()
 	}
